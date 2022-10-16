@@ -4,38 +4,58 @@ import type {NativeStackScreenProps} from '@react-navigation/native-stack';
 import {RootStackParamList} from '../../App';
 import {QUIZ_DONE_ROUTE, QUIZ_ROUTE} from '../constants/routes';
 import {Button, QuestionItem} from '../components';
-import {useContext} from 'react';
+import {useContext, useRef, useState} from 'react';
 import Context from '../../Context';
 
 type Props = NativeStackScreenProps<RootStackParamList, typeof QUIZ_ROUTE>;
 
 const Quiz = ({route, navigation}: Props) => {
+  const [message, setMessage] = useState<string>('');
+
   const {quiz} = route.params;
   const {selectedAnswers} = useContext(Context);
 
-  const quizDone = () => {
-    const answersCount = selectedAnswers.length;
-    const correctlyAnswers = selectedAnswers.reduce(
-      (acc, obj) => (obj.value === 1 ? acc + obj.value : acc + 0),
-      0,
-    );
-    const wrongAnswers = answersCount - correctlyAnswers;
+  const scrollRef = useRef<ScrollView>(null);
 
-    navigation.navigate(QUIZ_DONE_ROUTE, {
-      answersCount,
-      correctlyAnswers,
-      wrongAnswers,
-    });
+  const isAllAnswered = (): boolean => {
+    return !selectedAnswers.some(selectedAnswer => selectedAnswer.value === -1);
+  };
+
+  const quizDone = () => {
+    if (isAllAnswered()) {
+      setMessage('');
+
+      const answersCount = selectedAnswers.length;
+      const correctlyAnswers = selectedAnswers.reduce(
+        (acc, obj) => (obj.value === 1 ? acc + obj.value : acc + 0),
+        0,
+      );
+      const wrongAnswers = answersCount - correctlyAnswers;
+
+      navigation.navigate(QUIZ_DONE_ROUTE, {
+        answersCount,
+        correctlyAnswers,
+        wrongAnswers,
+      });
+
+      scrollRef.current?.scrollTo({
+        y: 0,
+        animated: false,
+      });
+    } else {
+      setMessage('All questions must be answered');
+    }
   };
 
   return (
     <SafeAreaView style={styles.container}>
-      <ScrollView>
+      <ScrollView ref={scrollRef}>
         <Image style={styles.image} source={quiz.image} />
         <Text style={styles.title}>{quiz.name}</Text>
         {quiz.questions.map(question => (
           <QuestionItem question={question} key={question.id} />
         ))}
+        <Text style={styles.message}>{message}</Text>
         <Button containerStyle={styles.button} text="Done" onPress={quizDone} />
       </ScrollView>
     </SafeAreaView>
@@ -59,6 +79,10 @@ const styles = StyleSheet.create({
     paddingTop: 12,
     fontSize: 18,
     fontWeight: '500',
+  },
+  message: {
+    color: COLORS.danger,
+    textAlign: 'center',
   },
   button: {
     marginTop: 12,
