@@ -29,21 +29,21 @@ const Stack = createNativeStackNavigator<RootStackParamList>();
 const App = () => {
   const [url, setUrl] = useState<string>('LOADING');
   const [selectedAnswers, setSelectedAnswers] = useState<ISelectedAnswer[]>([]);
+  const [reset, setReset] = useState<boolean>(false);
 
   useEffect(() => {
-    SplashScreen.hide();
-    // AsyncStorage.getItem(FIREBASE_URL_KEY).then(path => {
-    //   remoteConfig()
-    //     .fetchAndActivate()
-    //     .then(() => loadFire(path));
-    // });
+    AsyncStorage.getItem(FIREBASE_URL_KEY).then(path => {
+      remoteConfig()
+        .fetchAndActivate()
+        .then(() => loadFire(path));
+    });
   }, []);
 
-  // useEffect(() => {
-  //   if (url !== 'LOADING') {
-  //     SplashScreen.hide();
-  //   }
-  // }, [url]);
+  useEffect(() => {
+    if (url !== 'LOADING') {
+      SplashScreen.hide();
+    }
+  }, [url]);
 
   const loadFire = (path: string | null) => {
     if (path) {
@@ -69,41 +69,24 @@ const App = () => {
     } else {
       return (
         <NavigationContainer>
-          <Stack.Navigator
-            screenOptions={{
-              headerShown: false,
-            }}
-            initialRouteName={HOME_ROUTE}>
-            <Stack.Screen name={HOME_ROUTE} component={Home} />
-            {/* <Stack.Screen
-              name={MATCH_TEAMS_ROUTE}
-              component={MatchTeams}
-              options={{headerShown: true, headerTitle: ''}}
-            /> */}
-          </Stack.Navigator>
+          <Context.Provider
+            value={{selectedAnswers, setSelectedAnswers, reset, setReset}}>
+            <Stack.Navigator
+              screenOptions={{
+                headerShown: false,
+              }}
+              initialRouteName={HOME_ROUTE}>
+              <Stack.Screen name={HOME_ROUTE} component={Home} />
+              <Stack.Screen name={QUIZ_ROUTE} component={Quiz} />
+              <Stack.Screen name={QUIZ_DONE_ROUTE} component={QuizDone} />
+            </Stack.Navigator>
+          </Context.Provider>
         </NavigationContainer>
       );
     }
   };
 
-  return (
-    <View style={{flex: 1}}>
-      <Context.Provider
-        value={{selectedAnswers, setSelectedAnswers}}>
-        <NavigationContainer>
-          <Stack.Navigator
-            screenOptions={{
-              headerShown: false,
-            }}
-            initialRouteName={HOME_ROUTE}>
-            <Stack.Screen name={HOME_ROUTE} component={Home} />
-            <Stack.Screen name={QUIZ_ROUTE} component={Quiz} />
-            <Stack.Screen name={QUIZ_DONE_ROUTE} component={QuizDone} />
-          </Stack.Navigator>
-        </NavigationContainer>
-      </Context.Provider>
-    </View>
-  );
+  return <View style={{flex: 1}}>{renderByUrl()}</View>;
 };
 
 export default App;
