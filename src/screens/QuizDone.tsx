@@ -21,7 +21,7 @@ type Props = NativeStackScreenProps<RootStackParamList, typeof QUIZ_DONE_ROUTE>;
 const QuizDone = ({route, navigation}: Props) => {
   const {answersCount, correctlyAnswers, wrongAnswers} = route.params;
 
-  const {setSelectedAnswers} = useContext(Context);
+  const {setSelectedAnswers, setReset} = useContext(Context);
 
   const calcPercent = (): number => {
     const coef = answersCount / correctlyAnswers;
@@ -52,6 +52,7 @@ const QuizDone = ({route, navigation}: Props) => {
 
   const tryAgain = () => {
     setSelectedAnswers([]);
+    setReset((prevState: any) => !prevState)
     navigation.goBack();
   };
 
