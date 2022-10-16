@@ -1,27 +1,38 @@
-import {FC, useContext} from 'react';
+import {FC, useContext, useState, useEffect, memo} from 'react';
 import {StyleSheet, Text, View} from 'react-native';
 import {IQuestion} from '../models/IQuestion';
-import RadioForm from 'react-native-simple-radio-button';
+import {
+  RadioButton,
+  RadioButtonInput,
+  RadioButtonLabel,
+} from 'react-native-simple-radio-button';
 import Context from '../../Context';
 import {ISelectedAnswer} from '../models/ISelectedAnswer';
 import {COLORS} from '../constants/theme';
+import {IAnswer} from '../models/IAnswer';
 
 interface QuestionItemProps {
   question: IQuestion;
 }
 
 const QuestionItem: FC<QuestionItemProps> = ({question}) => {
-  const {selectedAnswers, setSelectedAnswers} = useContext(Context);
+  const [selectedAnswer, setSelectedAnswer] = useState<IAnswer | null>(null);
 
-  const selectAnswer = (value: number) => {
+  const {selectedAnswers, setSelectedAnswers, reset} = useContext(Context);
+
+  useEffect(() => {
+    setSelectedAnswer(null);
+  }, [reset]);
+
+  const selectAnswer = (answer: IAnswer) => {
+    setSelectedAnswer(answer);
+
     let selectedAnswersClone: ISelectedAnswer[] = [...selectedAnswers];
-
     selectedAnswersClone = selectedAnswersClone.map(selectedAnswer =>
       selectedAnswer.questionId == question.id
-        ? {...selectedAnswer, value}
+        ? {...selectedAnswer, value: answer.value}
         : selectedAnswer,
     );
-
     setSelectedAnswers(selectedAnswersClone);
   };
 
@@ -29,11 +40,29 @@ const QuestionItem: FC<QuestionItemProps> = ({question}) => {
     <View>
       <Text
         style={styles.question}>{`${question.id}. ${question.question}`}</Text>
-      <RadioForm
-        radio_props={question.answers}
-        initial={-1}
-        onPress={value => selectAnswer(value)}
-      />
+      {question.answers.map((answer, i) => (
+        <RadioButton labelHorizontal={true} key={i}>
+          <RadioButtonInput
+            obj={answer}
+            index={i}
+            isSelected={selectedAnswer?.id === answer.id}
+            onPress={() => selectAnswer(answer)}
+            buttonInnerColor={COLORS.primary}
+            buttonOuterColor={
+              selectedAnswer?.id === answer.id
+                ? COLORS.primary
+                : COLORS.secondary
+            }
+            buttonWrapStyle={{marginLeft: 10}}
+          />
+          <RadioButtonLabel
+            obj={answer}
+            index={i}
+            labelHorizontal={true}
+            onPress={() => selectAnswer(answer)}
+          />
+        </RadioButton>
+      ))}
     </View>
   );
 };
