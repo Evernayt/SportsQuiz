@@ -30,8 +30,9 @@ const styles = StyleSheet.create({
     fontSize: 28,
     fontWeight: '500',
     color: COLORS.primaryText,
-    textAlign: 'center',
-    paddingVertical: 12
+    textAlign: 'right',
+    paddingVertical: 12,
+    paddingHorizontal: 24
   },
 });
 
